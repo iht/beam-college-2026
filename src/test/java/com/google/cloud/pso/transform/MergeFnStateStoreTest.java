@@ -36,10 +36,8 @@ import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.testing.TestStream;
 import org.apache.beam.sdk.transforms.Create;
-import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollectionTuple;
-import org.apache.beam.sdk.values.TupleTagList;
 import org.joda.time.Duration;
 import org.junit.Rule;
 import org.junit.Test;
@@ -90,16 +88,12 @@ public class MergeFnStateStoreTest {
         PCollectionTuple output =
                 pipeline.apply(Create.of(KV.of(sessionId, e1)))
                         .apply(
-                                ParDo.of(
-                                                new MergeFn(
-                                                        "/tmp/state",
-                                                        null,
-                                                        new FakeStateStoreProvider(mockStateStore),
-                                                        PipelineFactory.ORDER_SUCCESS_TAG,
-                                                        PipelineFactory.FAILURE_TAG))
-                                        .withOutputTags(
-                                                PipelineFactory.ORDER_SUCCESS_TAG,
-                                                TupleTagList.of(PipelineFactory.FAILURE_TAG)));
+                                MergeFn.of(
+                                        "/tmp/state",
+                                        null,
+                                        new FakeStateStoreProvider(mockStateStore),
+                                        PipelineFactory.ORDER_SUCCESS_TAG,
+                                        PipelineFactory.FAILURE_TAG));
 
         PAssert.that(output.get(PipelineFactory.ORDER_SUCCESS_TAG))
                 .satisfies(
@@ -141,16 +135,12 @@ public class MergeFnStateStoreTest {
 
         pipeline.apply(stream)
                 .apply(
-                        ParDo.of(
-                                        new MergeFn(
-                                                "/tmp/state",
-                                                null,
-                                                new FakeStateStoreProvider(mockStateStore),
-                                                PipelineFactory.ORDER_SUCCESS_TAG,
-                                                PipelineFactory.FAILURE_TAG))
-                                .withOutputTags(
-                                        PipelineFactory.ORDER_SUCCESS_TAG,
-                                        TupleTagList.of(PipelineFactory.FAILURE_TAG)));
+                        MergeFn.of(
+                                "/tmp/state",
+                                null,
+                                new FakeStateStoreProvider(mockStateStore),
+                                PipelineFactory.ORDER_SUCCESS_TAG,
+                                PipelineFactory.FAILURE_TAG));
 
         pipeline.run();
 

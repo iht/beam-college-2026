@@ -31,7 +31,6 @@ import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
-import org.apache.beam.sdk.values.TupleTagList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,10 +55,7 @@ public class PipelineFactory {
 
         // 2. Parse JSON strings into Event objects
         PCollectionTuple parsedEvents =
-                rawEvents.apply(
-                        "ParseEvents",
-                        ParDo.of(new ParseEventFn(SUCCESS_TAG, FAILURE_TAG))
-                                .withOutputTags(SUCCESS_TAG, TupleTagList.of(FAILURE_TAG)));
+                rawEvents.apply("ParseEvents", ParseEventFn.of(SUCCESS_TAG, FAILURE_TAG));
 
         // 3. Key events by SessionId
         PCollection<KV<String, Event>> keyedEvents =
@@ -81,15 +77,12 @@ public class PipelineFactory {
         PCollectionTuple mergeResult =
                 keyedEvents.apply(
                         "ProcessAndMerge",
-                        ParDo.of(
-                                        new MergeFn(
-                                                options.getStateBaseDir(),
-                                                options.getStateMoveThresholdSeconds(),
-                                                new com.google.cloud.pso.storage
-                                                        .DefaultStateStoreProvider(),
-                                                ORDER_SUCCESS_TAG,
-                                                FAILURE_TAG))
-                                .withOutputTags(ORDER_SUCCESS_TAG, TupleTagList.of(FAILURE_TAG)));
+                        MergeFn.of(
+                                options.getStateBaseDir(),
+                                options.getStateMoveThresholdSeconds(),
+                                new com.google.cloud.pso.storage.DefaultStateStoreProvider(),
+                                ORDER_SUCCESS_TAG,
+                                FAILURE_TAG));
 
         PCollection<Order> mergedSessions = mergeResult.get(ORDER_SUCCESS_TAG);
         PCollection<String> mergeFailures = mergeResult.get(FAILURE_TAG);

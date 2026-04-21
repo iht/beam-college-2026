@@ -19,31 +19,58 @@ package com.google.cloud.pso.transform;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.pso.model.Event;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.PTransform;
+import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
+import org.apache.beam.sdk.values.TupleTagList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Simple DoFn to parse JSON strings with error handling. */
-public class ParseEventFn extends DoFn<String, Event> {
-    private static final Logger LOG = LoggerFactory.getLogger(ParseEventFn.class);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+/** Simple PTransform to parse JSON strings with error handling. */
+public class ParseEventFn extends PTransform<PCollection<String>, PCollectionTuple> {
 
     private final TupleTag<Event> successTag;
     private final TupleTag<String> failureTag;
 
-    public ParseEventFn(TupleTag<Event> successTag, TupleTag<String> failureTag) {
+    private ParseEventFn(TupleTag<Event> successTag, TupleTag<String> failureTag) {
         this.successTag = successTag;
         this.failureTag = failureTag;
     }
 
-    @ProcessElement
-    public void processElement(@Element String json, MultiOutputReceiver receiver) {
-        try {
-            Event event = OBJECT_MAPPER.readValue(json, Event.class);
-            receiver.get(successTag).output(event);
-        } catch (Exception e) {
-            LOG.error("Failed to parse event JSON: " + json, e);
-            receiver.get(failureTag).output(json);
+    public static ParseEventFn of(TupleTag<Event> successTag, TupleTag<String> failureTag) {
+        return new ParseEventFn(successTag, failureTag);
+    }
+
+    @Override
+    public PCollectionTuple expand(PCollection<String> input) {
+        return input.apply(
+                ParDo.of(new ParseDoFn(successTag, failureTag))
+                        .withOutputTags(successTag, TupleTagList.of(failureTag)));
+    }
+
+    private static class ParseDoFn extends DoFn<String, Event> {
+        private static final Logger LOG = LoggerFactory.getLogger(ParseDoFn.class);
+        private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+        private final TupleTag<Event> successTag;
+        private final TupleTag<String> failureTag;
+
+        public ParseDoFn(TupleTag<Event> successTag, TupleTag<String> failureTag) {
+            this.successTag = successTag;
+            this.failureTag = failureTag;
+        }
+
+        @ProcessElement
+        public void processElement(@Element String json, MultiOutputReceiver receiver) {
+            try {
+                Event event = OBJECT_MAPPER.readValue(json, Event.class);
+                receiver.get(successTag).output(event);
+            } catch (Exception e) {
+                LOG.error("Failed to parse event JSON: " + json, e);
+                receiver.get(failureTag).output(json);
+            }
         }
     }
 }

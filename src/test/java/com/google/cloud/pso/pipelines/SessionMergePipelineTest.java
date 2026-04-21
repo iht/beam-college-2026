@@ -40,7 +40,6 @@ import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
-import org.apache.beam.sdk.values.TupleTagList;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -103,13 +102,7 @@ public class SessionMergePipelineTest {
         PCollectionTuple parsedEvents =
                 input.apply(
                         "ParseEvents",
-                        ParDo.of(
-                                        new ParseEventFn(
-                                                PipelineFactory.SUCCESS_TAG,
-                                                PipelineFactory.FAILURE_TAG))
-                                .withOutputTags(
-                                        PipelineFactory.SUCCESS_TAG,
-                                        TupleTagList.of(PipelineFactory.FAILURE_TAG)));
+                        ParseEventFn.of(PipelineFactory.SUCCESS_TAG, PipelineFactory.FAILURE_TAG));
 
         PAssert.that(parsedEvents.get(PipelineFactory.FAILURE_TAG)).containsInAnyOrder(invalidJson);
 
@@ -120,16 +113,12 @@ public class SessionMergePipelineTest {
                         .apply("KeyBySessionId", ParDo.of(new KeyBySessionIdFn(sessionId)))
                         .apply(
                                 "ProcessAndMerge",
-                                ParDo.of(
-                                                new MergeFn(
-                                                        "/tmp",
-                                                        null,
-                                                        new FakeStateStoreProvider(mockStateStore),
-                                                        PipelineFactory.ORDER_SUCCESS_TAG,
-                                                        PipelineFactory.FAILURE_TAG))
-                                        .withOutputTags(
-                                                PipelineFactory.ORDER_SUCCESS_TAG,
-                                                TupleTagList.of(PipelineFactory.FAILURE_TAG)));
+                                MergeFn.of(
+                                        "/tmp",
+                                        null,
+                                        new FakeStateStoreProvider(mockStateStore),
+                                        PipelineFactory.ORDER_SUCCESS_TAG,
+                                        PipelineFactory.FAILURE_TAG));
 
         PAssert.that(output.get(PipelineFactory.ORDER_SUCCESS_TAG))
                 .satisfies(

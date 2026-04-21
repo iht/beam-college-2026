@@ -28,13 +28,11 @@ import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.testing.TestStream;
-import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TimestampedValue;
 import org.apache.beam.sdk.values.TupleTag;
-import org.apache.beam.sdk.values.TupleTagList;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.junit.Assert;
@@ -117,14 +115,12 @@ public class BeamCollegeDemoTest implements Serializable {
         PCollectionTuple results =
                 pipeline.apply(testStream)
                         .apply(
-                                ParDo.of(
-                                                new MergeFn(
-                                                        stateBaseDir,
-                                                        2,
-                                                        new DefaultStateStoreProvider(),
-                                                        SUCCESS_TAG,
-                                                        FAILURE_TAG))
-                                        .withOutputTags(SUCCESS_TAG, TupleTagList.of(FAILURE_TAG)));
+                                MergeFn.of(
+                                        stateBaseDir,
+                                        2,
+                                        new DefaultStateStoreProvider(),
+                                        SUCCESS_TAG,
+                                        FAILURE_TAG));
 
         PCollection<Order> successfulOrders = results.get(SUCCESS_TAG);
 
@@ -196,14 +192,12 @@ public class BeamCollegeDemoTest implements Serializable {
         PCollectionTuple results =
                 pipeline.apply(testStream)
                         .apply(
-                                ParDo.of(
-                                                new MergeFn(
-                                                        stateBaseDir,
-                                                        2,
-                                                        new DefaultStateStoreProvider(),
-                                                        SUCCESS_TAG,
-                                                        FAILURE_TAG))
-                                        .withOutputTags(SUCCESS_TAG, TupleTagList.of(FAILURE_TAG)));
+                                MergeFn.of(
+                                        stateBaseDir,
+                                        2,
+                                        new DefaultStateStoreProvider(),
+                                        SUCCESS_TAG,
+                                        FAILURE_TAG));
 
         PCollection<Order> successfulOrders = results.get(SUCCESS_TAG);
 
@@ -263,14 +257,12 @@ public class BeamCollegeDemoTest implements Serializable {
         PCollectionTuple results =
                 pipeline.apply(testStream)
                         .apply(
-                                ParDo.of(
-                                                new MergeFn(
-                                                        stateBaseDir,
-                                                        2,
-                                                        new DefaultStateStoreProvider(),
-                                                        SUCCESS_TAG,
-                                                        FAILURE_TAG))
-                                        .withOutputTags(SUCCESS_TAG, TupleTagList.of(FAILURE_TAG)));
+                                MergeFn.of(
+                                        stateBaseDir,
+                                        2,
+                                        new DefaultStateStoreProvider(),
+                                        SUCCESS_TAG,
+                                        FAILURE_TAG));
 
         PCollection<Order> successfulOrders = results.get(SUCCESS_TAG);
 
