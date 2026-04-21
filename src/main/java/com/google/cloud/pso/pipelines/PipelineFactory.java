@@ -16,7 +16,6 @@
 
 package com.google.cloud.pso.pipelines;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.pso.extract.CreateEvents;
 import com.google.cloud.pso.model.Event;
 import com.google.cloud.pso.model.Order;
@@ -43,9 +42,8 @@ import org.slf4j.LoggerFactory;
 public class PipelineFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(PipelineFactory.class);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    public static final TupleTag<String> SUCCESS_TAG = new TupleTag<String>() {};
+    public static final TupleTag<Event> SUCCESS_TAG = new TupleTag<Event>() {};
     public static final TupleTag<Order> ORDER_SUCCESS_TAG = new TupleTag<Order>() {};
     public static final TupleTag<String> FAILURE_TAG = new TupleTag<String>() {};
 
@@ -70,14 +68,11 @@ public class PipelineFactory {
                         .apply(
                                 "KeyBySessionId",
                                 ParDo.of(
-                                        new DoFn<String, KV<String, Event>>() {
+                                        new DoFn<Event, KV<String, Event>>() {
                                             @ProcessElement
                                             public void processElement(
-                                                    @Element String json,
-                                                    OutputReceiver<KV<String, Event>> receiver)
-                                                    throws Exception {
-                                                Event event =
-                                                        OBJECT_MAPPER.readValue(json, Event.class);
+                                                    @Element Event event,
+                                                    OutputReceiver<KV<String, Event>> receiver) {
                                                 receiver.output(KV.of(event.getSessionId(), event));
                                             }
                                         }));

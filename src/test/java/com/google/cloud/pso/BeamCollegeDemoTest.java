@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 import org.apache.beam.sdk.coders.KvCoder;
-import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
@@ -99,7 +98,10 @@ public class BeamCollegeDemoTest implements Serializable {
 
         TestStream<KV<String, Event>> testStream =
                 TestStream.create(
-                                KvCoder.of(StringUtf8Coder.of(), SerializableCoder.of(Event.class)))
+                                KvCoder.of(
+                                        StringUtf8Coder.of(),
+                                        org.apache.beam.sdk.schemas.SchemaRegistry.createDefault()
+                                                .getSchemaCoder(Event.class)))
                         .addElements(TimestampedValue.of(KV.of(sessionId, events.get(0)), start))
                         .addElements(
                                 TimestampedValue.of(
@@ -172,7 +174,10 @@ public class BeamCollegeDemoTest implements Serializable {
 
         TestStream<KV<String, Event>> testStream =
                 TestStream.create(
-                                KvCoder.of(StringUtf8Coder.of(), SerializableCoder.of(Event.class)))
+                                KvCoder.of(
+                                        StringUtf8Coder.of(),
+                                        org.apache.beam.sdk.schemas.SchemaRegistry.createDefault()
+                                                .getSchemaCoder(Event.class)))
                         .addElements(TimestampedValue.of(KV.of(sessionIdA, events.get(0)), start))
                         .addElements(
                                 TimestampedValue.of(
@@ -236,7 +241,10 @@ public class BeamCollegeDemoTest implements Serializable {
 
         TestStream<KV<String, Event>> testStream =
                 TestStream.create(
-                                KvCoder.of(StringUtf8Coder.of(), SerializableCoder.of(Event.class)))
+                                KvCoder.of(
+                                        StringUtf8Coder.of(),
+                                        org.apache.beam.sdk.schemas.SchemaRegistry.createDefault()
+                                                .getSchemaCoder(Event.class)))
                         // Send fragment 1 and 2
                         .addElements(TimestampedValue.of(KV.of(sessionId, events.get(0)), start))
                         .addElements(

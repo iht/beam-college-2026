@@ -17,26 +17,26 @@
 package com.google.cloud.pso.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.beam.sdk.coders.DefaultCoder;
-import org.apache.beam.sdk.coders.SerializableCoder;
+import org.apache.beam.sdk.schemas.JavaBeanSchema;
+import org.apache.beam.sdk.schemas.annotations.DefaultSchema;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /** Represents the aggregated state of an order based on shopping events. */
-@DefaultCoder(SerializableCoder.class)
-public class Order implements Serializable {
+@DefaultSchema(JavaBeanSchema.class)
+public class Order {
     @JsonProperty("session_id")
-    private String sessionId;
+    @Nullable @org.apache.avro.reflect.Nullable private String sessionId;
 
     private List<Event> events = new ArrayList<>();
     private Map<String, Integer> items = new HashMap<>();
 
     @JsonProperty("payment_method")
-    private String paymentMethod;
+    @Nullable @org.apache.avro.reflect.Nullable private String paymentMethod;
 
     private String status = "NEW";
 
@@ -50,8 +50,21 @@ public class Order implements Serializable {
         if (this.sessionId == null) {
             this.sessionId = event.getSessionId();
         }
-        events.add(event);
-        recalculate();
+
+        // Keep events sorted by timestamp
+        int index = Collections.binarySearch(events, event);
+        if (index < 0) {
+            index = -(index + 1);
+        }
+        events.add(index, event);
+
+        if (index == events.size() - 1) {
+            // Appended at the end, just apply it
+            apply(event);
+        } else {
+            // Inserted in the middle, need to recalculate everything
+            recalculate();
+        }
     }
 
     public void recalculate() {
@@ -60,8 +73,7 @@ public class Order implements Serializable {
         paymentMethod = null;
         status = "NEW";
 
-        // Sort events by timestamp to handle out-of-order arrival
-        events.sort(Comparator.comparing(Event::getTimestamp));
+        // Events are already sorted on insertion
 
         // Re-apply all events
         for (Event event : events) {
@@ -71,7 +83,7 @@ public class Order implements Serializable {
 
     private void apply(Event event) {
         String eventType = event.getEventType();
-        Map<String, Object> data = event.getData();
+        Map<String, String> data = event.getData();
 
         switch (eventType) {
             case "ADD_TO_CART":
@@ -83,7 +95,11 @@ public class Order implements Serializable {
                 } else if (qtyObj instanceof Long) {
                     quantity = ((Long) qtyObj).intValue();
                 } else if (qtyObj instanceof String) {
-                    quantity = Integer.parseInt((String) qtyObj);
+                    try {
+                        quantity = Integer.parseInt((String) qtyObj);
+                    } catch (NumberFormatException e) {
+                        quantity = 0; // Fallback to 0 for non-integer strings
+                    }
                 }
                 items.put(addItemId, items.getOrDefault(addItemId, 0) + quantity);
                 break;
@@ -101,11 +117,11 @@ public class Order implements Serializable {
         }
     }
 
-    public String getSessionId() {
+    @Nullable public String getSessionId() {
         return sessionId;
     }
 
-    public void setSessionId(String sessionId) {
+    public void setSessionId(@Nullable String sessionId) {
         this.sessionId = sessionId;
     }
 
@@ -125,11 +141,11 @@ public class Order implements Serializable {
         this.items = items;
     }
 
-    public String getPaymentMethod() {
+    @Nullable public String getPaymentMethod() {
         return paymentMethod;
     }
 
-    public void setPaymentMethod(String paymentMethod) {
+    public void setPaymentMethod(@Nullable String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
 

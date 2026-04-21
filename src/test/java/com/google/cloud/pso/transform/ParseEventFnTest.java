@@ -16,6 +16,8 @@
 
 package com.google.cloud.pso.transform;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.cloud.pso.model.Event;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
@@ -34,11 +36,11 @@ public class ParseEventFnTest {
 
     @Rule public final transient TestPipeline pipeline = TestPipeline.create();
 
-    public static final TupleTag<String> SUCCESS_TAG = new TupleTag<String>() {};
+    public static final TupleTag<Event> SUCCESS_TAG = new TupleTag<Event>() {};
     public static final TupleTag<String> FAILURE_TAG = new TupleTag<String>() {};
 
     @Test
-    public void testParseValidJson() {
+    public void testParseValidJson() throws Exception {
         String validJson =
                 "{\"session_id\":\"s1\", \"timestamp\":100, \"event_type\":\"ADD_TO_CART\","
                         + " \"data\":{\"item_id\":\"p1\", \"quantity\":1}}";
@@ -49,7 +51,8 @@ public class ParseEventFnTest {
                         ParDo.of(new ParseEventFn(SUCCESS_TAG, FAILURE_TAG))
                                 .withOutputTags(SUCCESS_TAG, TupleTagList.of(FAILURE_TAG)));
 
-        PAssert.that(output.get(SUCCESS_TAG)).containsInAnyOrder(validJson);
+        Event expectedEvent = new ObjectMapper().readValue(validJson, Event.class);
+        PAssert.that(output.get(SUCCESS_TAG)).containsInAnyOrder(expectedEvent);
         PAssert.that(output.get(FAILURE_TAG)).empty();
 
         pipeline.run();

@@ -66,7 +66,7 @@ public class SessionMergePipelineTest {
         }
     }
 
-    private static class KeyBySessionIdFn extends DoFn<String, KV<String, Event>> {
+    private static class KeyBySessionIdFn extends DoFn<Event, KV<String, Event>> {
         private final String sessionId;
 
         KeyBySessionIdFn(String sessionId) {
@@ -74,13 +74,9 @@ public class SessionMergePipelineTest {
         }
 
         @ProcessElement
-        public void processElement(@Element String json, OutputReceiver<KV<String, Event>> receiver)
-                throws Exception {
-            receiver.output(
-                    KV.of(
-                            sessionId,
-                            new com.fasterxml.jackson.databind.ObjectMapper()
-                                    .readValue(json, Event.class)));
+        public void processElement(
+                @Element Event event, OutputReceiver<KV<String, Event>> receiver) {
+            receiver.output(KV.of(sessionId, event));
         }
     }
 

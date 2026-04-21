@@ -38,22 +38,26 @@ public class EventGenerator {
 
         // Generate 28 shopping events (ADD_TO_CART or REMOVE_FROM_CART)
         for (int i = 0; i < 28; i++) {
+            Event event;
             // If cart is empty, we MUST add something
             // Otherwise, 70% chance to add, 30% to remove
             if (cart.isEmpty() || RANDOM.nextDouble() < 0.7) {
                 String itemId = "p_" + itemCounter++;
                 cart.add(itemId);
-                Map<String, Object> data = new HashMap<>();
+                Map<String, String> data = new HashMap<>();
                 data.put("item_id", itemId);
-                data.put("quantity", RANDOM.nextInt(5) + 1);
-                events.add(new Event(sessionId, currentTimestamp, "ADD_TO_CART", data));
+                data.put("quantity", String.valueOf(RANDOM.nextInt(5) + 1));
+                event = new Event(sessionId, currentTimestamp, "ADD_TO_CART", data);
             } else {
                 String itemToRemove = cart.get(RANDOM.nextInt(cart.size()));
                 cart.remove(itemToRemove);
-                Map<String, Object> data = new HashMap<>();
+                Map<String, String> data = new HashMap<>();
                 data.put("item_id", itemToRemove);
-                events.add(new Event(sessionId, currentTimestamp, "REMOVE_FROM_CART", data));
+                event = new Event(sessionId, currentTimestamp, "REMOVE_FROM_CART", data);
             }
+            event.setSequence(i + 1);
+            event.setTotalFragments(30);
+            events.add(event);
 
             currentTimestamp += (RANDOM.nextInt(4001) + 1000); // 1000 to 5000ms
         }
@@ -61,26 +65,33 @@ public class EventGenerator {
         // Ensure at least one item remains in the cart for payment
         if (cart.isEmpty()) {
             String itemId = "p_" + itemCounter++;
-            Map<String, Object> data = new HashMap<>();
+            Map<String, String> data = new HashMap<>();
             data.put("item_id", itemId);
-            data.put("quantity", 1);
+            data.put("quantity", "1");
             // Replace the last event to maintain exactly 30 total events
             Event lastEvent = events.get(events.size() - 1);
-            events.set(
-                    events.size() - 1,
-                    new Event(sessionId, lastEvent.getTimestamp(), "ADD_TO_CART", data));
+            Event newEvent = new Event(sessionId, lastEvent.getTimestamp(), "ADD_TO_CART", data);
+            newEvent.setSequence(lastEvent.getSequence());
+            newEvent.setTotalFragments(lastEvent.getTotalFragments());
+            events.set(events.size() - 1, newEvent);
             cart.add(itemId);
         }
 
         // Add payment
-        Map<String, Object> paymentData = new HashMap<>();
+        Map<String, String> paymentData = new HashMap<>();
         String method = (new String[] {"credit_card", "paypal", "apple_pay"})[RANDOM.nextInt(3)];
         paymentData.put("payment_method", method);
-        events.add(new Event(sessionId, currentTimestamp, "ADD_PAYMENT", paymentData));
+        Event paymentEvent = new Event(sessionId, currentTimestamp, "ADD_PAYMENT", paymentData);
+        paymentEvent.setSequence(29);
+        paymentEvent.setTotalFragments(30);
+        events.add(paymentEvent);
         currentTimestamp += (RANDOM.nextInt(4001) + 1000);
 
         // Submit order
-        events.add(new Event(sessionId, currentTimestamp, "SUBMIT_ORDER", new HashMap<>()));
+        Event submitEvent = new Event(sessionId, currentTimestamp, "SUBMIT_ORDER", new HashMap<>());
+        submitEvent.setSequence(30);
+        submitEvent.setTotalFragments(30);
+        events.add(submitEvent);
 
         return events;
     }

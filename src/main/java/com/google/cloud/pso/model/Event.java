@@ -17,14 +17,16 @@
 package com.google.cloud.pso.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
-import org.apache.beam.sdk.coders.DefaultCoder;
-import org.apache.beam.sdk.coders.SerializableCoder;
+import java.util.Objects;
+import org.apache.beam.sdk.schemas.JavaBeanSchema;
+import org.apache.beam.sdk.schemas.annotations.DefaultSchema;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /** POJO representing a shopping event. */
-@DefaultCoder(SerializableCoder.class)
-public class Event implements Serializable {
+@DefaultSchema(JavaBeanSchema.class)
+public class Event implements Comparable<Event> {
 
     @JsonProperty("session_id")
     private String sessionId;
@@ -34,21 +36,28 @@ public class Event implements Serializable {
     @JsonProperty("event_type")
     private String eventType;
 
-    private Map<String, Object> data;
+    private Map<String, String> data;
 
     @JsonProperty("sequence")
-    private Integer sequence;
+    @Nullable private Integer sequence;
 
     @JsonProperty("total_fragments")
-    private Integer totalFragments;
+    @Nullable private Integer totalFragments;
 
-    public Event() {}
+    public Event() {
+        this.data = new java.util.HashMap<>();
+    }
 
-    public Event(String sessionId, Long timestamp, String eventType, Map<String, Object> data) {
+    public Event(String sessionId, Long timestamp, String eventType, Map<String, ?> data) {
         this.sessionId = sessionId;
         this.timestamp = timestamp;
         this.eventType = eventType;
-        this.data = data;
+        this.data = new HashMap<>();
+        if (data != null) {
+            for (Map.Entry<String, ?> entry : data.entrySet()) {
+                this.data.put(entry.getKey(), String.valueOf(entry.getValue()));
+            }
+        }
     }
 
     public String getSessionId() {
@@ -75,28 +84,51 @@ public class Event implements Serializable {
         this.eventType = eventType;
     }
 
-    public Map<String, Object> getData() {
+    public Map<String, String> getData() {
         return data;
     }
 
-    public void setData(Map<String, Object> data) {
+    public void setData(Map<String, String> data) {
         this.data = data;
     }
 
-    public Integer getSequence() {
+    @Nullable public Integer getSequence() {
         return sequence;
     }
 
-    public void setSequence(Integer sequence) {
+    public void setSequence(@Nullable Integer sequence) {
         this.sequence = sequence;
     }
 
-    public Integer getTotalFragments() {
+    @Nullable public Integer getTotalFragments() {
         return totalFragments;
     }
 
-    public void setTotalFragments(Integer totalFragments) {
+    public void setTotalFragments(@Nullable Integer totalFragments) {
         this.totalFragments = totalFragments;
+    }
+
+    @Override
+    public int compareTo(Event other) {
+        return this.timestamp.compareTo(other.timestamp);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Event)) return false;
+        Event event = (Event) o;
+        return Objects.equals(sessionId, event.sessionId)
+                && Objects.equals(timestamp, event.timestamp)
+                && Objects.equals(eventType, event.eventType)
+                && Objects.equals(data, event.data)
+                && Objects.equals(sequence, event.sequence)
+                && Objects.equals(totalFragments, event.totalFragments);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(sessionId, timestamp, eventType, data, sequence, totalFragments);
     }
 
     @Override

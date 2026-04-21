@@ -22,7 +22,9 @@ import com.google.cloud.pso.model.Order;
 import com.google.cloud.pso.storage.StateStore;
 import com.google.cloud.pso.storage.StateStoreProvider;
 import java.io.IOException;
-import org.apache.beam.sdk.coders.StringUtf8Coder;
+import org.apache.beam.sdk.coders.Coder;
+import org.apache.beam.sdk.schemas.NoSuchSchemaException;
+import org.apache.beam.sdk.schemas.SchemaRegistry;
 import org.apache.beam.sdk.state.StateSpec;
 import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.TimeDomain;
@@ -52,9 +54,17 @@ public class MergeFn extends DoFn<KV<String, Event>, Order> {
     private final TupleTag<String> failureTag;
     public transient StateStore stateStore;
 
+    private static Coder<Order> getOrderCoder() {
+        try {
+            return SchemaRegistry.createDefault().getSchemaCoder(Order.class);
+        } catch (NoSuchSchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @StateId("accumulatedEvents")
-    private final StateSpec<ValueState<String>> accumulatedEventsSpec =
-            StateSpecs.value(StringUtf8Coder.of());
+    private final StateSpec<ValueState<Order>> accumulatedEventsSpec =
+            StateSpecs.value(getOrderCoder());
 
     @TimerId("stateTimer")
     private final TimerSpec stateTimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME);
@@ -89,7 +99,7 @@ public class MergeFn extends DoFn<KV<String, Event>, Order> {
     public void processElement(
             @Element KV<String, Event> element,
             MultiOutputReceiver receiver,
-            @StateId("accumulatedEvents") ValueState<String> state,
+            @StateId("accumulatedEvents") ValueState<Order> state,
             @TimerId("stateTimer") Timer timer) {
 
         String sessionId = element.getKey();
@@ -97,12 +107,9 @@ public class MergeFn extends DoFn<KV<String, Event>, Order> {
 
         try {
             // 1. Read from in-memory state
-            String currentStateJson = state.read();
-            Order order;
+            Order order = state.read();
 
-            if (currentStateJson != null) {
-                order = OBJECT_MAPPER.readValue(currentStateJson, Order.class);
-            } else {
+            if (order == null) {
                 // 2. Lookup external state if not in memory
                 order = lookupExternalState(sessionId);
                 if (order == null) {
@@ -110,7 +117,7 @@ public class MergeFn extends DoFn<KV<String, Event>, Order> {
                 } else {
                     // WARM UP: If we found external state, write it to internal state
                     // so subsequent elements can use it without another lookup.
-                    state.write(OBJECT_MAPPER.writeValueAsString(order));
+                    state.write(order);
                 }
             }
 
@@ -118,8 +125,7 @@ public class MergeFn extends DoFn<KV<String, Event>, Order> {
             order.addEvent(newEvent);
 
             // 5. Update state
-            String updatedStateJson = OBJECT_MAPPER.writeValueAsString(order);
-            state.write(updatedStateJson);
+            state.write(order);
 
             // 6. Output merged session as Order object
             receiver.get(successTag).output(order);
@@ -139,17 +145,17 @@ public class MergeFn extends DoFn<KV<String, Event>, Order> {
     @OnTimer("stateTimer")
     public void onTimer(
             OnTimerContext c,
-            @StateId("accumulatedEvents") ValueState<String> state,
+            @StateId("accumulatedEvents") ValueState<Order> state,
             @TimerId("stateTimer") Timer timer)
             throws IOException {
 
         LOG.info("Timer fired for processing state.");
-        String currentStateJson = state.read();
-        if (currentStateJson != null) {
-            Order order = OBJECT_MAPPER.readValue(currentStateJson, Order.class);
-            if (order != null && order.getSessionId() != null) {
+        Order order = state.read();
+        if (order != null) {
+            if (order.getSessionId() != null) {
                 try {
-                    writeToExternalState(order.getSessionId(), currentStateJson);
+                    writeToExternalState(
+                            order.getSessionId(), OBJECT_MAPPER.writeValueAsString(order));
                     LOG.info(
                             "Moved state to external storage for session: " + order.getSessionId());
                     // Clear state ONLY on success

@@ -24,14 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Simple DoFn to parse JSON strings with error handling. */
-public class ParseEventFn extends DoFn<String, String> {
+public class ParseEventFn extends DoFn<String, Event> {
     private static final Logger LOG = LoggerFactory.getLogger(ParseEventFn.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final TupleTag<String> successTag;
+    private final TupleTag<Event> successTag;
     private final TupleTag<String> failureTag;
 
-    public ParseEventFn(TupleTag<String> successTag, TupleTag<String> failureTag) {
+    public ParseEventFn(TupleTag<Event> successTag, TupleTag<String> failureTag) {
         this.successTag = successTag;
         this.failureTag = failureTag;
     }
@@ -39,9 +39,8 @@ public class ParseEventFn extends DoFn<String, String> {
     @ProcessElement
     public void processElement(@Element String json, MultiOutputReceiver receiver) {
         try {
-            // Just validate it's a valid Event JSON
-            OBJECT_MAPPER.readValue(json, Event.class);
-            receiver.get(successTag).output(json);
+            Event event = OBJECT_MAPPER.readValue(json, Event.class);
+            receiver.get(successTag).output(event);
         } catch (Exception e) {
             LOG.error("Failed to parse event JSON: " + json, e);
             receiver.get(failureTag).output(json);

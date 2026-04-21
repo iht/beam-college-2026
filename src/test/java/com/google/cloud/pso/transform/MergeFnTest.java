@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.beam.sdk.coders.KvCoder;
-import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
@@ -130,7 +129,10 @@ public class MergeFnTest {
 
         TestStream<KV<String, Event>> stream =
                 TestStream.create(
-                                KvCoder.of(StringUtf8Coder.of(), SerializableCoder.of(Event.class)))
+                                KvCoder.of(
+                                        StringUtf8Coder.of(),
+                                        org.apache.beam.sdk.schemas.SchemaRegistry.createDefault()
+                                                .getSchemaCoder(Event.class)))
                         .advanceWatermarkTo(Instant.ofEpochMilli(1000L))
                         .addElements(KV.of(sessionId, e1))
                         .advanceWatermarkToInfinity();
@@ -174,7 +176,10 @@ public class MergeFnTest {
 
         TestStream<KV<String, Event>> stream =
                 TestStream.create(
-                                KvCoder.of(StringUtf8Coder.of(), SerializableCoder.of(Event.class)))
+                                KvCoder.of(
+                                        StringUtf8Coder.of(),
+                                        org.apache.beam.sdk.schemas.SchemaRegistry.createDefault()
+                                                .getSchemaCoder(Event.class)))
                         .advanceWatermarkTo(Instant.ofEpochMilli(1000L))
                         .addElements(KV.of(sessionId, e1))
                         // Timer set to 1000 + 2000 = 3000ms
@@ -228,7 +233,10 @@ public class MergeFnTest {
 
         TestStream<KV<String, Event>> stream =
                 TestStream.create(
-                                KvCoder.of(StringUtf8Coder.of(), SerializableCoder.of(Event.class)))
+                                KvCoder.of(
+                                        StringUtf8Coder.of(),
+                                        org.apache.beam.sdk.schemas.SchemaRegistry.createDefault()
+                                                .getSchemaCoder(Event.class)))
                         .advanceWatermarkTo(Instant.ofEpochMilli(1000L))
                         .addElements(KV.of(sessionId, e1))
                         // First trigger at 3000ms (will fail and reschedule for 5000ms)

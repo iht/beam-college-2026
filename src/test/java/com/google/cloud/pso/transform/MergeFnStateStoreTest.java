@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.beam.sdk.coders.KvCoder;
-import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
@@ -132,7 +131,10 @@ public class MergeFnStateStoreTest {
 
         TestStream<KV<String, Event>> stream =
                 TestStream.create(
-                                KvCoder.of(StringUtf8Coder.of(), SerializableCoder.of(Event.class)))
+                                KvCoder.of(
+                                        StringUtf8Coder.of(),
+                                        org.apache.beam.sdk.schemas.SchemaRegistry.createDefault()
+                                                .getSchemaCoder(Event.class)))
                         .addElements(KV.of(sessionId, e1))
                         .advanceProcessingTime(Duration.standardSeconds(65))
                         .advanceWatermarkToInfinity();
