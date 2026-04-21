@@ -1,0 +1,7 @@
+.vscode/
+.gradle/
+build/
+python/venv/
+python/.venv/
+python/.python-version
+**/__pycache__
