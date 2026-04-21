@@ -1,4 +1,17 @@
-# Apache Beam Two-Level Cache Project
+# Assembling the Puzzle: High-Performance Entity Building streaming Beam pipeline using a Two-Tiered State Architecture
+
+[![Beam College 2026](https://img.shields.io/badge/Beam%20College-2026-blue)](https://beamcollege.dev/)
+
+This repository contains the official demo for the talk **"Assembling the Puzzle: High-Performance Entity Building streaming Beam pipeline using a Two-Tiered State Architecture"** presented at [Beam College 2026](https://beamcollege.dev/).
+
+## 👥 Authors
+
+*   [CanburakTumer](https://github.com/CanburakTumer)
+*   [iht](https://github.com/iht/)
+
+---
+
+## 🚀 Project Overview: Apache Beam Two-Level Cache
 
 This project implements an Apache Beam pipeline to merge and reconstruct e-commerce session entities from partial events using a two-level cache (In-Memory State and Local Filesystem persistent storage).
 
