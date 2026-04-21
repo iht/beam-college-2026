@@ -30,13 +30,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 @DefaultSchema(JavaBeanSchema.class)
 public class Order {
     @JsonProperty("session_id")
-    @Nullable @org.apache.avro.reflect.Nullable private String sessionId;
+    @Nullable private String sessionId;
 
     private List<Event> events = new ArrayList<>();
     private Map<String, Integer> items = new HashMap<>();
 
     @JsonProperty("payment_method")
-    @Nullable @org.apache.avro.reflect.Nullable private String paymentMethod;
+    @Nullable private String paymentMethod;
 
     private String status = "NEW";
 
