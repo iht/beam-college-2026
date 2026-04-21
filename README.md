@@ -1,6 +1,6 @@
 # Assembling the Puzzle: High-Performance Entity Building streaming Beam pipeline using a Two-Tiered State Architecture
 
-[![Beam College 2026](https://img.shields.io/badge/Beam%20College-2026-blue)](https://beamcollege.dev/)
+[![Beam College 2026](https://img.shields.io/badge/Beam%20College-2026-blue)](https://beamcollege.dev/) [![Build and tests](https://github.com/iht/beam-college-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/iht/beam-college-2026/actions/workflows/ci.yml)
 
 This repository contains the official demo for the talk **"Assembling the Puzzle: High-Performance Entity Building streaming Beam pipeline using a Two-Tiered State Architecture"** presented at [Beam College 2026](https://beamcollege.dev/).
 
