@@ -20,6 +20,7 @@ import com.google.cloud.pso.extract.CreateEvents;
 import com.google.cloud.pso.model.Event;
 import com.google.cloud.pso.model.Order;
 import com.google.cloud.pso.options.SessionMergeOptions;
+import com.google.cloud.pso.transform.KeyBySessionId;
 import com.google.cloud.pso.transform.MergeFn;
 import com.google.cloud.pso.transform.ParseEventFn;
 import org.apache.beam.sdk.Pipeline;
@@ -55,17 +56,7 @@ public class PipelineFactory {
         PCollection<KV<String, Event>> keyedEvents =
                 parsedEvents
                         .get(ParseEventFn.SUCCESS_TAG)
-                        .apply(
-                                "KeyBySessionId",
-                                ParDo.of(
-                                        new DoFn<Event, KV<String, Event>>() {
-                                            @ProcessElement
-                                            public void processElement(
-                                                    @Element Event event,
-                                                    OutputReceiver<KV<String, Event>> receiver) {
-                                                receiver.output(KV.of(event.getSessionId(), event));
-                                            }
-                                        }));
+                        .apply("KeyBySessionId", KeyBySessionId.of());
 
         // 4. Stateful Process and Merge
         PCollectionTuple mergeResult =
