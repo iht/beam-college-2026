@@ -24,7 +24,7 @@ import org.apache.beam.sdk.schemas.JavaBeanSchema;
 import org.apache.beam.sdk.schemas.annotations.DefaultSchema;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/** POJO representing a shopping event. */
+/** Java Bean representing a shopping event. */
 @DefaultSchema(JavaBeanSchema.class)
 public class Event implements Comparable<Event> {
 

@@ -61,7 +61,7 @@ public class PipelineFactory {
                         ParDo.of(new ParseEventFn(SUCCESS_TAG, FAILURE_TAG))
                                 .withOutputTags(SUCCESS_TAG, TupleTagList.of(FAILURE_TAG)));
 
-        // 4. Key events by SessionId
+        // 3. Key events by SessionId
         PCollection<KV<String, Event>> keyedEvents =
                 parsedEvents
                         .get(SUCCESS_TAG)
@@ -77,7 +77,7 @@ public class PipelineFactory {
                                             }
                                         }));
 
-        // 5. Stateful Process and Merge
+        // 4. Stateful Process and Merge
         PCollectionTuple mergeResult =
                 keyedEvents.apply(
                         "ProcessAndMerge",
@@ -94,7 +94,7 @@ public class PipelineFactory {
         PCollection<Order> mergedSessions = mergeResult.get(ORDER_SUCCESS_TAG);
         PCollection<String> mergeFailures = mergeResult.get(FAILURE_TAG);
 
-        // 6. Handle All Failures (Parsing + Merging)
+        // 5. Handle All Failures (Parsing + Merging)
         PCollectionList.of(parsedEvents.get(FAILURE_TAG))
                 .and(mergeFailures)
                 .apply("FlattenFailures", Flatten.pCollections())
@@ -108,7 +108,7 @@ public class PipelineFactory {
                                     }
                                 }));
 
-        // 7. Write successful merges to stdout
+        // 6. Write successful merges to stdout
         mergedSessions.apply(
                 "WriteToStdout",
                 ParDo.of(

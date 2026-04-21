@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
-/** Logic for generating, shuffling, and serializing shopping events. */
+/** Logic for generating and shuffling shopping events. */
 public class EventGenerator {
 
     private static final Random RANDOM = new Random();

@@ -124,13 +124,13 @@ public class MergeFn extends DoFn<KV<String, Event>, Order> {
             // 3. Add new event and recalculate state
             order.addEvent(newEvent);
 
-            // 5. Update state
+            // 4. Update state
             state.write(order);
 
-            // 6. Output merged session as Order object
+            // 5. Output merged session as Order object
             receiver.get(successTag).output(order);
 
-            // 7. Reset timer
+            // 6. Reset timer
             timer.offset(Duration.standardSeconds(stateMoveThresholdSeconds)).setRelative();
         } catch (Exception e) {
             LOG.error("Failed to process event for session: " + sessionId, e);
