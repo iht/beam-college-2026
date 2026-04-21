@@ -57,3 +57,29 @@ gradle run --args="--numEvents=300 --stateBaseDir=/tmp/beam-state"
 ```
 
 Check the output in `stdout` to see the merged sessions (Orders). Failures will be logged to `stderr`.
+
+## 3. Debugging the Pipeline
+
+The tests in `src/test/java/com/google/cloud/pso/BeamCollegeDemoTest.java` are specifically designed to be run step-by-step with a debugger to help you understand how the pipeline works.
+
+This is a standard Java Gradle project, so you can use your favorite IDE or debugger (e.g., VS Code, IntelliJ IDEA) without needing any cloud environment.
+
+### Step-by-Step Guide
+
+1.  **Set Breakpoints**:
+    *   Open `src/main/java/com/google/cloud/pso/transform/MergeFn.java`.
+    *   Put a breakpoint inside the `processElement` method (around line 89).
+    *   Put a breakpoint inside the `onTimer` method (around line 140).
+
+2.  **Run Tests in Debug Mode**:
+    *   Run the tests in `BeamCollegeDemoTest.java` using your IDE's debugger.
+    *   For example, in VS Code, you can use the "Debug Test" codelens above the test methods.
+
+3.  **Observe Variables**:
+    *   When the breakpoint hits, inspect the local variables like `sessionId`, `newEvent`, and `currentStateJson`.
+    *   Observe how `MergeFn` reads from internal state, updates it, and interacts with the external state store.
+
+4.  **Inspect State Files**:
+    *   While the tests are running, `MergeFn` will offload state to a file-based cache when the timer fires.
+    *   In the unit tests, these files are written to a temporary folder (check the value of `stateBaseDir` in the debugger to see the path).
+    *   If you run the pipeline locally using the `gradle run` command (mentioned above), the state files will be written to `/tmp/beam-state` (or whatever you specified in `--stateBaseDir`). You can inspect these files to see the JSON serialized state of the sessions.
