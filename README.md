@@ -58,13 +58,13 @@ gradle run --args="--numEvents=300 --stateBaseDir=/tmp/beam-state"
 
 Check the output in `stdout` to see the merged sessions (Orders). Failures will be logged to `stderr`.
 
-## 3. Debugging the Pipeline
+### 3. Debugging the Pipeline
 
 The tests in `src/test/java/com/google/cloud/pso/BeamCollegeDemoTest.java` are specifically designed to be run step-by-step with a debugger to help you understand how the pipeline works.
 
 This is a standard Java Gradle project, so you can use your favorite IDE or debugger (e.g., VS Code, IntelliJ IDEA) without needing any cloud environment.
 
-### Step-by-Step Guide
+#### Step-by-Step Guide
 
 1.  **Set Breakpoints**:
     *   Open `src/main/java/com/google/cloud/pso/transform/MergeFn.java`.
