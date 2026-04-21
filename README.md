@@ -57,7 +57,7 @@ Each session follows a strict stateful progression to ensure data integrity:
 Run unit tests to verify the core business logic of the pipeline.
 
 ```bash
-gradle test
+./gradlew test
 ```
 
 ### 2. Running the Pipeline Locally
@@ -66,7 +66,7 @@ To run the pipeline locally using the `DirectRunner`. The pipeline will generate
 You have to pass some arguments to the pipeline, to specify the number of events to generate or the state base directory:
 
 ```bash
-gradle run --args="--numEvents=300 --stateBaseDir=/tmp/beam-state"
+./gradlew run --args="--numEvents=300 --stateBaseDir=/tmp/beam-state"
 ```
 
 Check the output in `stdout` to see the merged sessions (Orders). Failures will be logged to `stderr`.
@@ -95,4 +95,4 @@ This is a standard Java Gradle project, so you can use your favorite IDE or debu
 4.  **Inspect State Files**:
     *   While the tests are running, `MergeFn` will offload state to a file-based cache when the timer fires.
     *   In the unit tests, these files are written to a temporary folder (check the value of `stateBaseDir` in the debugger to see the path).
-    *   If you run the pipeline locally using the `gradle run` command (mentioned above), the state files will be written to `/tmp/beam-state` (or whatever you specified in `--stateBaseDir`). You can inspect these files to see the JSON serialized state of the sessions.
+    *   If you run the pipeline locally using the `./gradlew run` command (mentioned above), the state files will be written to `/tmp/beam-state` (or whatever you specified in `--stateBaseDir`). You can inspect these files to see the JSON serialized state of the sessions.
