@@ -39,7 +39,7 @@ public class CreateEventsTest {
     @Test
     public void testCreateEventsCount() {
         int numEvents = 100;
-        PCollection<String> events = pipeline.apply(new CreateEvents(numEvents));
+        PCollection<String> events = pipeline.apply(CreateEvents.of(numEvents));
 
         PAssert.thatSingleton(events.apply("CountEvents", Count.globally()))
                 .isEqualTo((long) numEvents);
@@ -50,7 +50,7 @@ public class CreateEventsTest {
     @Test
     public void testCreateEventsSerialization() {
         int numEvents = 10;
-        PCollection<String> events = pipeline.apply(new CreateEvents(numEvents));
+        PCollection<String> events = pipeline.apply(CreateEvents.of(numEvents));
 
         // Verify we can deserialize back to Event objects
         events.apply("VerifyDeserialization", ParDo.of(new VerifyDeserializationFn()));

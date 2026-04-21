@@ -34,8 +34,12 @@ public class CreateEvents extends PTransform<PBegin, PCollection<String>> {
     private final int numEvents;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    public CreateEvents(int numEvents) {
+    private CreateEvents(int numEvents) {
         this.numEvents = numEvents;
+    }
+
+    public static CreateEvents of(int numEvents) {
+        return new CreateEvents(numEvents);
     }
 
     @Override

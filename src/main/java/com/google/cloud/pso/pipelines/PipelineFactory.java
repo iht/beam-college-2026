@@ -46,7 +46,7 @@ public class PipelineFactory {
 
         // 1. Internal Event Generation
         PCollection<String> rawEvents =
-                pipeline.apply("GenerateEvents", new CreateEvents(options.getNumEvents()));
+                pipeline.apply("GenerateEvents", CreateEvents.of(options.getNumEvents()));
 
         // 2. Parse JSON strings into Event objects
         PCollectionTuple parsedEvents = rawEvents.apply("ParseEvents", ParseEventFn.of());
