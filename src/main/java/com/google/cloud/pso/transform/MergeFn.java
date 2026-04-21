@@ -50,50 +50,34 @@ import org.slf4j.LoggerFactory;
  */
 public class MergeFn extends PTransform<PCollection<KV<String, Event>>, PCollectionTuple> {
 
+    public static final TupleTag<Order> SUCCESS_TAG = new TupleTag<Order>() {};
+    public static final TupleTag<String> FAILURE_TAG = new TupleTag<String>() {};
+
     private final String stateBaseDir;
     private final Integer stateMoveThresholdSeconds;
     private final StateStoreProvider stateStoreProvider;
-    private final TupleTag<Order> successTag;
-    private final TupleTag<String> failureTag;
 
     private MergeFn(
             String stateBaseDir,
             Integer stateMoveThresholdSeconds,
-            StateStoreProvider stateStoreProvider,
-            TupleTag<Order> successTag,
-            TupleTag<String> failureTag) {
+            StateStoreProvider stateStoreProvider) {
         this.stateBaseDir = stateBaseDir;
         this.stateMoveThresholdSeconds = stateMoveThresholdSeconds;
         this.stateStoreProvider = stateStoreProvider;
-        this.successTag = successTag;
-        this.failureTag = failureTag;
     }
 
     public static MergeFn of(
             String stateBaseDir,
             Integer stateMoveThresholdSeconds,
-            StateStoreProvider stateStoreProvider,
-            TupleTag<Order> successTag,
-            TupleTag<String> failureTag) {
-        return new MergeFn(
-                stateBaseDir,
-                stateMoveThresholdSeconds,
-                stateStoreProvider,
-                successTag,
-                failureTag);
+            StateStoreProvider stateStoreProvider) {
+        return new MergeFn(stateBaseDir, stateMoveThresholdSeconds, stateStoreProvider);
     }
 
     @Override
     public PCollectionTuple expand(PCollection<KV<String, Event>> input) {
         return input.apply(
-                ParDo.of(
-                                new MergeDoFn(
-                                        stateBaseDir,
-                                        stateMoveThresholdSeconds,
-                                        stateStoreProvider,
-                                        successTag,
-                                        failureTag))
-                        .withOutputTags(successTag, TupleTagList.of(failureTag)));
+                ParDo.of(new MergeDoFn(stateBaseDir, stateMoveThresholdSeconds, stateStoreProvider))
+                        .withOutputTags(SUCCESS_TAG, TupleTagList.of(FAILURE_TAG)));
     }
 
     private static class MergeDoFn extends DoFn<KV<String, Event>, Order> {
@@ -103,8 +87,6 @@ public class MergeFn extends PTransform<PCollection<KV<String, Event>>, PCollect
         private final String stateBaseDir;
         private final int stateMoveThresholdSeconds;
         private final StateStoreProvider stateStoreProvider;
-        private final TupleTag<Order> successTag;
-        private final TupleTag<String> failureTag;
         public transient StateStore stateStore;
 
         private static Coder<Order> getOrderCoder() {
@@ -125,15 +107,11 @@ public class MergeFn extends PTransform<PCollection<KV<String, Event>>, PCollect
         public MergeDoFn(
                 String stateBaseDir,
                 Integer stateMoveThresholdSeconds,
-                StateStoreProvider stateStoreProvider,
-                TupleTag<Order> successTag,
-                TupleTag<String> failureTag) {
+                StateStoreProvider stateStoreProvider) {
             this.stateBaseDir = stateBaseDir;
             this.stateMoveThresholdSeconds =
                     stateMoveThresholdSeconds != null ? stateMoveThresholdSeconds : 2;
             this.stateStoreProvider = stateStoreProvider;
-            this.successTag = successTag;
-            this.failureTag = failureTag;
         }
 
         @Setup
@@ -174,12 +152,12 @@ public class MergeFn extends PTransform<PCollection<KV<String, Event>>, PCollect
 
                 order.addEvent(newEvent);
                 state.write(order);
-                receiver.get(successTag).output(order);
+                receiver.get(SUCCESS_TAG).output(order);
                 timer.offset(Duration.standardSeconds(stateMoveThresholdSeconds)).setRelative();
             } catch (Exception e) {
                 LOG.error("Failed to process event for session: " + sessionId, e);
                 try {
-                    receiver.get(failureTag).output(OBJECT_MAPPER.writeValueAsString(newEvent));
+                    receiver.get(FAILURE_TAG).output(OBJECT_MAPPER.writeValueAsString(newEvent));
                 } catch (IOException ioException) {
                     LOG.error("Failed to write failed event to DLQ", ioException);
                 }

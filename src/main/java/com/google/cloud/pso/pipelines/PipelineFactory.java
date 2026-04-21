@@ -30,7 +30,6 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.PCollectionTuple;
-import org.apache.beam.sdk.values.TupleTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,10 +41,6 @@ public class PipelineFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(PipelineFactory.class);
 
-    public static final TupleTag<Event> SUCCESS_TAG = new TupleTag<Event>() {};
-    public static final TupleTag<Order> ORDER_SUCCESS_TAG = new TupleTag<Order>() {};
-    public static final TupleTag<String> FAILURE_TAG = new TupleTag<String>() {};
-
     public static Pipeline createPipeline(SessionMergeOptions options) {
         Pipeline pipeline = Pipeline.create(options);
 
@@ -54,13 +49,12 @@ public class PipelineFactory {
                 pipeline.apply("GenerateEvents", new CreateEvents(options.getNumEvents()));
 
         // 2. Parse JSON strings into Event objects
-        PCollectionTuple parsedEvents =
-                rawEvents.apply("ParseEvents", ParseEventFn.of(SUCCESS_TAG, FAILURE_TAG));
+        PCollectionTuple parsedEvents = rawEvents.apply("ParseEvents", ParseEventFn.of());
 
         // 3. Key events by SessionId
         PCollection<KV<String, Event>> keyedEvents =
                 parsedEvents
-                        .get(SUCCESS_TAG)
+                        .get(ParseEventFn.SUCCESS_TAG)
                         .apply(
                                 "KeyBySessionId",
                                 ParDo.of(
@@ -80,15 +74,13 @@ public class PipelineFactory {
                         MergeFn.of(
                                 options.getStateBaseDir(),
                                 options.getStateMoveThresholdSeconds(),
-                                new com.google.cloud.pso.storage.DefaultStateStoreProvider(),
-                                ORDER_SUCCESS_TAG,
-                                FAILURE_TAG));
+                                new com.google.cloud.pso.storage.DefaultStateStoreProvider()));
 
-        PCollection<Order> mergedSessions = mergeResult.get(ORDER_SUCCESS_TAG);
-        PCollection<String> mergeFailures = mergeResult.get(FAILURE_TAG);
+        PCollection<Order> mergedSessions = mergeResult.get(MergeFn.SUCCESS_TAG);
+        PCollection<String> mergeFailures = mergeResult.get(MergeFn.FAILURE_TAG);
 
         // 5. Handle All Failures (Parsing + Merging)
-        PCollectionList.of(parsedEvents.get(FAILURE_TAG))
+        PCollectionList.of(parsedEvents.get(ParseEventFn.FAILURE_TAG))
                 .and(mergeFailures)
                 .apply("FlattenFailures", Flatten.pCollections())
                 .apply(

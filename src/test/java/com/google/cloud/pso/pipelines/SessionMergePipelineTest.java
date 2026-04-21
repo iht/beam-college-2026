@@ -99,28 +99,21 @@ public class SessionMergePipelineTest {
                 pipeline.apply(Create.of(Arrays.asList(validJson, invalidJson)));
 
         // Test Parsing and DLQ logic
-        PCollectionTuple parsedEvents =
-                input.apply(
-                        "ParseEvents",
-                        ParseEventFn.of(PipelineFactory.SUCCESS_TAG, PipelineFactory.FAILURE_TAG));
+        PCollectionTuple parsedEvents = input.apply("ParseEvents", ParseEventFn.of());
 
-        PAssert.that(parsedEvents.get(PipelineFactory.FAILURE_TAG)).containsInAnyOrder(invalidJson);
+        PAssert.that(parsedEvents.get(ParseEventFn.FAILURE_TAG)).containsInAnyOrder(invalidJson);
 
         // Test Integration with MergeFn
         PCollectionTuple output =
                 parsedEvents
-                        .get(PipelineFactory.SUCCESS_TAG)
+                        .get(ParseEventFn.SUCCESS_TAG)
                         .apply("KeyBySessionId", ParDo.of(new KeyBySessionIdFn(sessionId)))
                         .apply(
                                 "ProcessAndMerge",
                                 MergeFn.of(
-                                        "/tmp",
-                                        null,
-                                        new FakeStateStoreProvider(mockStateStore),
-                                        PipelineFactory.ORDER_SUCCESS_TAG,
-                                        PipelineFactory.FAILURE_TAG));
+                                        "/tmp", null, new FakeStateStoreProvider(mockStateStore)));
 
-        PAssert.that(output.get(PipelineFactory.ORDER_SUCCESS_TAG))
+        PAssert.that(output.get(MergeFn.SUCCESS_TAG))
                 .satisfies(
                         elements -> {
                             Order order = elements.iterator().next();

@@ -31,45 +31,36 @@ import org.slf4j.LoggerFactory;
 /** Simple PTransform to parse JSON strings with error handling. */
 public class ParseEventFn extends PTransform<PCollection<String>, PCollectionTuple> {
 
-    private final TupleTag<Event> successTag;
-    private final TupleTag<String> failureTag;
+    public static final TupleTag<Event> SUCCESS_TAG = new TupleTag<Event>() {};
+    public static final TupleTag<String> FAILURE_TAG = new TupleTag<String>() {};
 
-    private ParseEventFn(TupleTag<Event> successTag, TupleTag<String> failureTag) {
-        this.successTag = successTag;
-        this.failureTag = failureTag;
-    }
+    private ParseEventFn() {}
 
-    public static ParseEventFn of(TupleTag<Event> successTag, TupleTag<String> failureTag) {
-        return new ParseEventFn(successTag, failureTag);
+    public static ParseEventFn of() {
+        return new ParseEventFn();
     }
 
     @Override
     public PCollectionTuple expand(PCollection<String> input) {
         return input.apply(
-                ParDo.of(new ParseDoFn(successTag, failureTag))
-                        .withOutputTags(successTag, TupleTagList.of(failureTag)));
+                ParDo.of(new ParseDoFn())
+                        .withOutputTags(SUCCESS_TAG, TupleTagList.of(FAILURE_TAG)));
     }
 
     private static class ParseDoFn extends DoFn<String, Event> {
         private static final Logger LOG = LoggerFactory.getLogger(ParseDoFn.class);
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-        private final TupleTag<Event> successTag;
-        private final TupleTag<String> failureTag;
-
-        public ParseDoFn(TupleTag<Event> successTag, TupleTag<String> failureTag) {
-            this.successTag = successTag;
-            this.failureTag = failureTag;
-        }
+        public ParseDoFn() {}
 
         @ProcessElement
         public void processElement(@Element String json, MultiOutputReceiver receiver) {
             try {
                 Event event = OBJECT_MAPPER.readValue(json, Event.class);
-                receiver.get(successTag).output(event);
+                receiver.get(SUCCESS_TAG).output(event);
             } catch (Exception e) {
                 LOG.error("Failed to parse event JSON: " + json, e);
-                receiver.get(failureTag).output(json);
+                receiver.get(FAILURE_TAG).output(json);
             }
         }
     }

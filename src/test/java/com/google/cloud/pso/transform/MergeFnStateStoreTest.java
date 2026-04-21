@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.cloud.pso.model.Event;
 import com.google.cloud.pso.model.Order;
-import com.google.cloud.pso.pipelines.PipelineFactory;
 import com.google.cloud.pso.storage.StateStore;
 import com.google.cloud.pso.storage.StateStoreProvider;
 import java.util.HashMap;
@@ -91,11 +90,9 @@ public class MergeFnStateStoreTest {
                                 MergeFn.of(
                                         "/tmp/state",
                                         null,
-                                        new FakeStateStoreProvider(mockStateStore),
-                                        PipelineFactory.ORDER_SUCCESS_TAG,
-                                        PipelineFactory.FAILURE_TAG));
+                                        new FakeStateStoreProvider(mockStateStore)));
 
-        PAssert.that(output.get(PipelineFactory.ORDER_SUCCESS_TAG))
+        PAssert.that(output.get(MergeFn.SUCCESS_TAG))
                 .satisfies(
                         elements -> {
                             Order order = elements.iterator().next();
@@ -134,13 +131,7 @@ public class MergeFnStateStoreTest {
                         .advanceWatermarkToInfinity();
 
         pipeline.apply(stream)
-                .apply(
-                        MergeFn.of(
-                                "/tmp/state",
-                                null,
-                                new FakeStateStoreProvider(mockStateStore),
-                                PipelineFactory.ORDER_SUCCESS_TAG,
-                                PipelineFactory.FAILURE_TAG));
+                .apply(MergeFn.of("/tmp/state", null, new FakeStateStoreProvider(mockStateStore)));
 
         pipeline.run();
 

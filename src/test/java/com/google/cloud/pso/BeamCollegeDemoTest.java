@@ -32,7 +32,6 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TimestampedValue;
-import org.apache.beam.sdk.values.TupleTag;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.junit.Assert;
@@ -68,9 +67,6 @@ public class BeamCollegeDemoTest implements Serializable {
 
     @Rule public final transient TestPipeline pipeline = TestPipeline.create();
     @Rule public final transient TemporaryFolder tempFolder = new TemporaryFolder();
-
-    public static final TupleTag<Order> SUCCESS_TAG = new TupleTag<Order>() {};
-    public static final TupleTag<String> FAILURE_TAG = new TupleTag<String>() {};
 
     /**
      * Demonstrates merging fragments for a single order and triggering the offloading timer.
@@ -114,15 +110,9 @@ public class BeamCollegeDemoTest implements Serializable {
 
         PCollectionTuple results =
                 pipeline.apply(testStream)
-                        .apply(
-                                MergeFn.of(
-                                        stateBaseDir,
-                                        2,
-                                        new DefaultStateStoreProvider(),
-                                        SUCCESS_TAG,
-                                        FAILURE_TAG));
+                        .apply(MergeFn.of(stateBaseDir, 2, new DefaultStateStoreProvider()));
 
-        PCollection<Order> successfulOrders = results.get(SUCCESS_TAG);
+        PCollection<Order> successfulOrders = results.get(MergeFn.SUCCESS_TAG);
 
         PAssert.that(successfulOrders)
                 .satisfies(
@@ -191,15 +181,9 @@ public class BeamCollegeDemoTest implements Serializable {
 
         PCollectionTuple results =
                 pipeline.apply(testStream)
-                        .apply(
-                                MergeFn.of(
-                                        stateBaseDir,
-                                        2,
-                                        new DefaultStateStoreProvider(),
-                                        SUCCESS_TAG,
-                                        FAILURE_TAG));
+                        .apply(MergeFn.of(stateBaseDir, 2, new DefaultStateStoreProvider()));
 
-        PCollection<Order> successfulOrders = results.get(SUCCESS_TAG);
+        PCollection<Order> successfulOrders = results.get(MergeFn.SUCCESS_TAG);
 
         PAssert.that(successfulOrders)
                 .satisfies(
@@ -256,15 +240,9 @@ public class BeamCollegeDemoTest implements Serializable {
 
         PCollectionTuple results =
                 pipeline.apply(testStream)
-                        .apply(
-                                MergeFn.of(
-                                        stateBaseDir,
-                                        2,
-                                        new DefaultStateStoreProvider(),
-                                        SUCCESS_TAG,
-                                        FAILURE_TAG));
+                        .apply(MergeFn.of(stateBaseDir, 2, new DefaultStateStoreProvider()));
 
-        PCollection<Order> successfulOrders = results.get(SUCCESS_TAG);
+        PCollection<Order> successfulOrders = results.get(MergeFn.SUCCESS_TAG);
 
         PAssert.that(successfulOrders)
                 .satisfies(

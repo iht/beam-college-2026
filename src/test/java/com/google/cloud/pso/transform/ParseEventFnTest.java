@@ -23,7 +23,6 @@ import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
-import org.apache.beam.sdk.values.TupleTag;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,9 +33,6 @@ public class ParseEventFnTest {
 
     @Rule public final transient TestPipeline pipeline = TestPipeline.create();
 
-    public static final TupleTag<Event> SUCCESS_TAG = new TupleTag<Event>() {};
-    public static final TupleTag<String> FAILURE_TAG = new TupleTag<String>() {};
-
     @Test
     public void testParseValidJson() throws Exception {
         String validJson =
@@ -44,11 +40,11 @@ public class ParseEventFnTest {
                         + " \"data\":{\"item_id\":\"p1\", \"quantity\":1}}";
         PCollection<String> input = pipeline.apply(Create.of(validJson));
 
-        PCollectionTuple output = input.apply(ParseEventFn.of(SUCCESS_TAG, FAILURE_TAG));
+        PCollectionTuple output = input.apply(ParseEventFn.of());
 
         Event expectedEvent = new ObjectMapper().readValue(validJson, Event.class);
-        PAssert.that(output.get(SUCCESS_TAG)).containsInAnyOrder(expectedEvent);
-        PAssert.that(output.get(FAILURE_TAG)).empty();
+        PAssert.that(output.get(ParseEventFn.SUCCESS_TAG)).containsInAnyOrder(expectedEvent);
+        PAssert.that(output.get(ParseEventFn.FAILURE_TAG)).empty();
 
         pipeline.run();
     }
@@ -58,10 +54,10 @@ public class ParseEventFnTest {
         String invalidJson = "invalid-json";
         PCollection<String> input = pipeline.apply(Create.of(invalidJson));
 
-        PCollectionTuple output = input.apply(ParseEventFn.of(SUCCESS_TAG, FAILURE_TAG));
+        PCollectionTuple output = input.apply(ParseEventFn.of());
 
-        PAssert.that(output.get(SUCCESS_TAG)).empty();
-        PAssert.that(output.get(FAILURE_TAG)).containsInAnyOrder(invalidJson);
+        PAssert.that(output.get(ParseEventFn.SUCCESS_TAG)).empty();
+        PAssert.that(output.get(ParseEventFn.FAILURE_TAG)).containsInAnyOrder(invalidJson);
 
         pipeline.run();
     }

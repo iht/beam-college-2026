@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.pso.model.Event;
 import com.google.cloud.pso.model.Order;
-import com.google.cloud.pso.pipelines.PipelineFactory;
 import com.google.cloud.pso.storage.StateStore;
 import com.google.cloud.pso.storage.StateStoreProvider;
 import java.io.IOException;
@@ -43,7 +42,6 @@ import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
-import org.apache.beam.sdk.values.TupleTag;
 import org.joda.time.Instant;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,8 +53,6 @@ public class MergeFnTest {
 
     @Rule public final transient TestPipeline pipeline = TestPipeline.create();
 
-    public static final TupleTag<Order> SUCCESS_TAG = new TupleTag<Order>() {};
-    public static final TupleTag<String> FAILURE_TAG = new TupleTag<String>() {};
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static class FakeStateStoreProvider implements StateStoreProvider {
@@ -91,11 +87,9 @@ public class MergeFnTest {
                                 MergeFn.of(
                                         "/tmp/state",
                                         null,
-                                        new FakeStateStoreProvider(mockStateStore),
-                                        SUCCESS_TAG,
-                                        FAILURE_TAG));
+                                        new FakeStateStoreProvider(mockStateStore)));
 
-        PCollection<Order> orders = results.get(SUCCESS_TAG);
+        PCollection<Order> orders = results.get(MergeFn.SUCCESS_TAG);
 
         PAssert.that(orders)
                 .satisfies(
@@ -139,11 +133,9 @@ public class MergeFnTest {
                                 MergeFn.of(
                                         "/tmp/state",
                                         2,
-                                        new FakeStateStoreProvider(mockStateStore),
-                                        PipelineFactory.ORDER_SUCCESS_TAG,
-                                        PipelineFactory.FAILURE_TAG));
+                                        new FakeStateStoreProvider(mockStateStore)));
 
-        PAssert.that(results.get(PipelineFactory.ORDER_SUCCESS_TAG)).satisfies(it -> null);
+        PAssert.that(results.get(MergeFn.SUCCESS_TAG)).satisfies(it -> null);
 
         pipeline.run();
 
@@ -192,11 +184,9 @@ public class MergeFnTest {
                                 MergeFn.of(
                                         "/tmp/state",
                                         2,
-                                        new FakeStateStoreProvider(mockStateStore),
-                                        PipelineFactory.ORDER_SUCCESS_TAG,
-                                        PipelineFactory.FAILURE_TAG));
+                                        new FakeStateStoreProvider(mockStateStore)));
 
-        PAssert.that(results.get(PipelineFactory.ORDER_SUCCESS_TAG)).satisfies(it -> null);
+        PAssert.that(results.get(MergeFn.SUCCESS_TAG)).satisfies(it -> null);
 
         pipeline.run();
 
@@ -239,11 +229,9 @@ public class MergeFnTest {
                                 MergeFn.of(
                                         "/tmp/state",
                                         2,
-                                        new FakeStateStoreProvider(mockStateStore),
-                                        PipelineFactory.ORDER_SUCCESS_TAG,
-                                        PipelineFactory.FAILURE_TAG));
+                                        new FakeStateStoreProvider(mockStateStore)));
 
-        PAssert.that(results.get(PipelineFactory.ORDER_SUCCESS_TAG)).satisfies(it -> null);
+        PAssert.that(results.get(MergeFn.SUCCESS_TAG)).satisfies(it -> null);
 
         pipeline.run();
 
@@ -278,11 +266,9 @@ public class MergeFnTest {
                                 MergeFn.of(
                                         "/tmp/state",
                                         2,
-                                        new FakeStateStoreProvider(mockStateStore),
-                                        PipelineFactory.ORDER_SUCCESS_TAG,
-                                        PipelineFactory.FAILURE_TAG));
+                                        new FakeStateStoreProvider(mockStateStore)));
 
-        PAssert.that(results.get(PipelineFactory.ORDER_SUCCESS_TAG))
+        PAssert.that(results.get(MergeFn.SUCCESS_TAG))
                 .satisfies(
                         elements -> {
                             Order order = elements.iterator().next();
