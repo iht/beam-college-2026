@@ -11,6 +11,12 @@ This repository contains the official demo for the talk **"Assembling the Puzzle
 
 ---
 
+> [!NOTE]
+> **Presentation Slides**
+> The slides for the talk are available in the repository: [Assembling_the_puzzle.pdf](slides/Assembling_the_puzzle.pdf)
+
+---
+
 ## 🚀 Project Overview: Apache Beam Two-Level Cache
 
 This project implements an Apache Beam pipeline to merge and reconstruct e-commerce session entities from partial events using a two-level cache (In-Memory State and Local Filesystem persistent storage).
