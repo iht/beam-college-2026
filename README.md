@@ -6,8 +6,8 @@ This repository contains the official demo for the talk **"Assembling the Puzzle
 
 ## 👥 Authors
 
-*   [CanburakTumer](https://github.com/CanburakTumer)
-*   [iht](https://github.com/iht/)
+* [CanburakTumer](https://github.com/CanburakTumer)
+* [iht](https://github.com/iht/)
 
 ---
 
@@ -85,20 +85,20 @@ This is a standard Java Gradle project, so you can use your favorite IDE or debu
 
 #### Step-by-Step Guide
 
-1.  **Set Breakpoints**:
-    *   Open `src/main/java/com/google/cloud/pso/transform/MergeFn.java`.
-    *   Put a breakpoint inside the `processElement` method (around line 89).
-    *   Put a breakpoint inside the `onTimer` method (around line 140).
+1. **Set Breakpoints**:
+    * Open `src/main/java/com/google/cloud/pso/transform/MergeFn.java`.
+    * Put a breakpoint inside the `processElement` method (around line 89).
+    * Put a breakpoint inside the `onTimer` method (around line 140).
 
-2.  **Run Tests in Debug Mode**:
-    *   Run the tests in `BeamCollegeDemoTest.java` using your IDE's debugger.
-    *   For example, in VS Code, you can use the "Debug Test" codelens above the test methods.
+2. **Run Tests in Debug Mode**:
+    * Run the tests in `BeamCollegeDemoTest.java` using your IDE's debugger.
+    * For example, in VS Code, you can use the "Debug Test" codelens above the test methods.
 
-3.  **Observe Variables**:
-    *   When the breakpoint hits, inspect the local variables like `sessionId`, `newEvent`, and `currentStateJson`.
-    *   Observe how `MergeFn` reads from internal state, updates it, and interacts with the external state store.
+3. **Observe Variables**:
+    * When the breakpoint hits, inspect the local variables like `sessionId`, `newEvent`, and `currentStateJson`.
+    * Observe how `MergeFn` reads from internal state, updates it, and interacts with the external state store.
 
-4.  **Inspect State Files**:
-    *   While the tests are running, `MergeFn` will offload state to a file-based cache when the timer fires.
-    *   In the unit tests, these files are written to a temporary folder (check the value of `stateBaseDir` in the debugger to see the path).
-    *   If you run the pipeline locally using the `./gradlew run` command (mentioned above), the state files will be written to `/tmp/beam-state` (or whatever you specified in `--stateBaseDir`). You can inspect these files to see the JSON serialized state of the sessions.
+4. **Inspect State Files**:
+    * While the tests are running, `MergeFn` will offload state to a file-based cache when the timer fires.
+    * In the unit tests, these files are written to a temporary folder (check the value of `stateBaseDir` in the debugger to see the path).
+    * If you run the pipeline locally using the `./gradlew run` command (mentioned above), the state files will be written to `/tmp/beam-state` (or whatever you specified in `--stateBaseDir`). You can inspect these files to see the JSON serialized state of the sessions.
