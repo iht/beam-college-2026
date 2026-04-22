@@ -45,7 +45,7 @@ repositories {
 
 dependencies {
 	// Google Cloud BOM
-	implementation platform('com.google.cloud:libraries-bom:26.76.0')
+	implementation platform('com.google.cloud:libraries-bom:26.80.0')
 
 	// Apache Beam
 	implementation "org.apache.beam:beam-sdks-java-core:${beamVersion}"
