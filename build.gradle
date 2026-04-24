@@ -17,8 +17,8 @@
 plugins {
 	id 'java'
 	id 'application'
-	id 'com.diffplug.spotless' version "7.0.2"
-	id 'net.ltgt.errorprone' version "4.1.0"
+	id 'com.diffplug.spotless' version "7.2.1"
+	id 'net.ltgt.errorprone' version "4.4.0"
 }
 
 ext {
@@ -59,7 +59,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation "org.mockito:mockito-core:${mockitoVersion}"
 	testImplementation 'junit:junit:4.13.2'
-	testImplementation 'org.hamcrest:hamcrest:2.2'
+	testImplementation 'org.hamcrest:hamcrest:3.0'
 	testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
 
 	errorprone "com.google.errorprone:error_prone_core:${errorProneCoreVersion}"
