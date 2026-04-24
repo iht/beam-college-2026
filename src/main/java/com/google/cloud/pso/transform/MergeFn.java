@@ -115,13 +115,13 @@ public class MergeFn extends PTransform<PCollection<KV<String, Event>>, PCollect
         }
 
         @Setup
-        @SuppressWarnings("unused")
+        @SuppressWarnings("UnusedMethod")
         public void setup() {
             this.stateStore = stateStoreProvider.getStateStore(stateBaseDir);
         }
 
         @Teardown
-        @SuppressWarnings("unused")
+        @SuppressWarnings("UnusedMethod")
         public void teardown() throws Exception {
             if (this.stateStore != null) {
                 this.stateStore.close();
@@ -165,7 +165,7 @@ public class MergeFn extends PTransform<PCollection<KV<String, Event>>, PCollect
         }
 
         @OnTimer("stateTimer")
-        @SuppressWarnings("unused")
+        @SuppressWarnings("UnusedMethod")
         public void onTimer(
                 OnTimerContext c,
                 @StateId("accumulatedEvents") ValueState<Order> state,

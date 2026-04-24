@@ -18,9 +18,10 @@ package com.google.cloud.pso.options;
 
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
+import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.Validation.Required;
 
-public interface SessionMergeOptions extends org.apache.beam.sdk.extensions.gcp.options.GcpOptions {
+public interface SessionMergeOptions extends PipelineOptions {
     @Description("Base directory for local file state storage")
     @Required
     String getStateBaseDir();

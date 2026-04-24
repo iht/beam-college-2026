@@ -20,6 +20,7 @@ import com.google.cloud.pso.extract.CreateEvents;
 import com.google.cloud.pso.model.Event;
 import com.google.cloud.pso.model.Order;
 import com.google.cloud.pso.options.SessionMergeOptions;
+import com.google.cloud.pso.storage.DefaultStateStoreProvider;
 import com.google.cloud.pso.transform.KeyBySessionId;
 import com.google.cloud.pso.transform.MergeFn;
 import com.google.cloud.pso.transform.ParseEventFn;
@@ -65,7 +66,7 @@ public class PipelineFactory {
                         MergeFn.of(
                                 options.getStateBaseDir(),
                                 options.getStateMoveThresholdSeconds(),
-                                new com.google.cloud.pso.storage.DefaultStateStoreProvider()));
+                                new DefaultStateStoreProvider()));
 
         PCollection<Order> mergedSessions = mergeResult.get(MergeFn.SUCCESS_TAG);
         PCollection<String> mergeFailures = mergeResult.get(MergeFn.FAILURE_TAG);

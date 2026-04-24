@@ -17,7 +17,6 @@
 plugins {
 	id 'java'
 	id 'application'
-	id 'maven-publish'
 	id 'com.diffplug.spotless' version "7.0.2"
 	id 'net.ltgt.errorprone' version "4.1.0"
 }
@@ -30,7 +29,7 @@ ext {
 
 	beamVersion = "2.72.0"
 
-	slf4jVersion = "2.0.16"
+	slf4jVersion = "2.0.17"
 	junitVersion = "5.10.0"
 	mockitoVersion = "5.5.0"
 	errorProneCoreVersion = '2.36.0'
@@ -45,12 +44,11 @@ repositories {
 
 dependencies {
 	// Google Cloud BOM
-	implementation platform('com.google.cloud:libraries-bom:26.76.0')
+	implementation platform('com.google.cloud:libraries-bom:26.80.0')
 
 	// Apache Beam
 	implementation "org.apache.beam:beam-sdks-java-core:${beamVersion}"
 	implementation "org.apache.beam:beam-runners-direct-java:${beamVersion}"
-	implementation "org.apache.beam:beam-sdks-java-io-google-cloud-platform:${beamVersion}"
 
 	// SLF4J for logging
 	implementation "org.slf4j:slf4j-api:${slf4jVersion}"
@@ -61,6 +59,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation "org.mockito:mockito-core:${mockitoVersion}"
 	testImplementation 'junit:junit:4.13.2'
+	testImplementation 'org.hamcrest:hamcrest:2.2'
 	testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
 
 	errorprone "com.google.errorprone:error_prone_core:${errorProneCoreVersion}"
@@ -68,6 +67,9 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+	jvmArgs += [
+		'--enable-native-access=ALL-UNNAMED'
+	]
 }
 
 application {
@@ -76,9 +78,7 @@ application {
 	version = appVersion
 }
 
-run {
-	environment "GOOGLE_APPLICATION_CREDENTIALS", "/Users/canburak/git-repos/gerrit/beam-academy-2026/fake-credentials.json"
-}
+
 
 tasks.withType(JavaCompile) {
 	options.compilerArgs.addAll([
