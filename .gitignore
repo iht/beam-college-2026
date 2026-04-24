@@ -7,3 +7,4 @@ python/.python-version
 **/__pycache__
 .venv
 tmp_state
+bin/
