@@ -17,8 +17,8 @@
 plugins {
 	id 'java'
 	id 'application'
-	id 'com.diffplug.spotless' version "7.0.2"
-	id 'net.ltgt.errorprone' version "4.1.0"
+	id 'com.diffplug.spotless' version "7.2.1"
+	id 'net.ltgt.errorprone' version "4.4.0"
 }
 
 ext {
@@ -30,9 +30,9 @@ ext {
 	beamVersion = "2.72.0"
 
 	slf4jVersion = "2.0.17"
-	junitVersion = "5.10.0"
-	mockitoVersion = "5.5.0"
-	errorProneCoreVersion = '2.36.0'
+	junitVersion = "5.14.3"
+	mockitoVersion = "5.23.0"
+	errorProneCoreVersion = '2.49.0'
 
 	googleJavaFormat = '1.35.0'
 }
