@@ -37,18 +37,14 @@ ext {
 	googleJavaFormat = '1.35.0'
 }
 
-
 repositories {
 	mavenCentral()
 }
 
 dependencies {
-	// Google Cloud BOM
-	implementation platform('com.google.cloud:libraries-bom:26.80.0')
-
 	// Apache Beam
 	implementation "org.apache.beam:beam-sdks-java-core:${beamVersion}"
-	implementation "org.apache.beam:beam-runners-direct-java:${beamVersion}"
+	runtimeOnly "org.apache.beam:beam-runners-direct-java:${beamVersion}"
 
 	// SLF4J for logging
 	implementation "org.slf4j:slf4j-api:${slf4jVersion}"
@@ -58,9 +54,9 @@ dependencies {
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation "org.mockito:mockito-core:${mockitoVersion}"
-	testImplementation 'junit:junit:4.13.2'
+	testImplementation "org.apache.beam:beam-sdks-java-testing-junit:${beamVersion}"
 	testImplementation 'org.hamcrest:hamcrest:3.0'
-	testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
+	testImplementation 'junit:junit:4.13.2'  // required for TestStream
 
 	errorprone "com.google.errorprone:error_prone_core:${errorProneCoreVersion}"
 }
@@ -73,12 +69,9 @@ test {
 }
 
 application {
-
 	mainClass = "${javaPackagePath}.${appName}"
 	version = appVersion
 }
-
-
 
 tasks.withType(JavaCompile) {
 	options.compilerArgs.addAll([
@@ -87,13 +80,11 @@ tasks.withType(JavaCompile) {
 	])
 }
 
-
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(25)
 	}
 }
-
 
 // Package a self-contained jar file.
 jar {
@@ -111,9 +102,6 @@ jar {
 	}
 	zip64 true
 }
-
-
-
 
 spotless {
 	format 'misc', {

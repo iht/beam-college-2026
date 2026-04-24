@@ -16,6 +16,10 @@
 
 package com.google.cloud.pso;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.cloud.pso.model.Event;
 import com.google.cloud.pso.model.Order;
 import com.google.cloud.pso.storage.DefaultStateStoreProvider;
@@ -27,6 +31,7 @@ import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
+import org.apache.beam.sdk.testing.TestPipelineExtension;
 import org.apache.beam.sdk.testing.TestStream;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
@@ -34,12 +39,9 @@ import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TimestampedValue;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * BeamCollegeDemoTest is a comprehensive end-to-end unit test designed for step-by-step debugging
@@ -62,11 +64,10 @@ import org.junit.runners.JUnit4;
  *   <li>Run this test in Debug mode.
  * </ol>
  */
-@RunWith(JUnit4.class)
+@ExtendWith(TestPipelineExtension.class)
 public class BeamCollegeDemoTest implements Serializable {
 
-    @Rule public final transient TestPipeline pipeline = TestPipeline.create();
-    @Rule public final transient TemporaryFolder tempFolder = new TemporaryFolder();
+    @TempDir File tempFolder;
 
     /**
      * Demonstrates merging fragments for a single order and triggering the offloading timer.
@@ -82,10 +83,11 @@ public class BeamCollegeDemoTest implements Serializable {
      * </ol>
      */
     @Test
-    public void testSingleOrderMergingAndOffloading() throws Exception {
+    public void testSingleOrderMergingAndOffloading(TestPipeline pipeline) throws Exception {
         String sessionId = "demo-session-1";
         Instant start = Instant.ofEpochMilli(0);
-        File stateDir = tempFolder.newFolder("state");
+        File stateDir = new File(tempFolder, "state");
+        stateDir.mkdirs();
         String stateBaseDir = stateDir.getAbsolutePath();
 
         List<Event> events = DemoTestUtils.createSingleOrderScenario(sessionId, start);
@@ -121,26 +123,15 @@ public class BeamCollegeDemoTest implements Serializable {
                             for (Order _ : orders) {
                                 count++;
                             }
-                            // Expected outputs:
-                            // 1. After fragment 1 (internal state)
-                            // 2. After fragment 2 (internal state)
-                            // 3. After fragment 3 (warmed up from cold cache + fragment 3)
-                            Assert.assertTrue("Should have at least 3 outputs", count >= 3);
+                            assertTrue(count >= 3, "Should have at least 3 outputs");
                             return null;
                         });
 
         pipeline.run().waitUntilFinish();
 
-        // Verify that the state file was created at some point (it might have been deleted if
-        // another fragment arrived,
-        // depending on how MergeFn handles warm up - actually MergeFn WARM UP writes back to
-        // internal state but does it delete from external?
-        // Let's check MergeFn.java)
-        // From MergeFn.java: lookupExternalState reads it. It doesn't seem to delete it
-        // immediately.
-        Assert.assertTrue(
-                "State file should exist in cold cache",
-                DemoTestUtils.checkStateFileExists(stateBaseDir, sessionId));
+        assertTrue(
+                DemoTestUtils.checkStateFileExists(stateBaseDir, sessionId),
+                "State file should exist in cold cache");
     }
 
     /**
@@ -148,11 +139,12 @@ public class BeamCollegeDemoTest implements Serializable {
      * different orders arriving in the same stream.
      */
     @Test
-    public void testInterleavedOrdersMatching() throws Exception {
+    public void testInterleavedOrdersMatching(TestPipeline pipeline) throws Exception {
         String sessionIdA = "session-A";
         String sessionIdB = "session-B";
         Instant start = Instant.ofEpochMilli(0);
-        File stateDir = tempFolder.newFolder("state-interleaved");
+        File stateDir = new File(tempFolder, "state-interleaved");
+        stateDir.mkdirs();
         String stateBaseDir = stateDir.getAbsolutePath();
 
         List<Event> events =
@@ -194,10 +186,8 @@ public class BeamCollegeDemoTest implements Serializable {
                                 if (order.getSessionId().equals(sessionIdA)) countA++;
                                 if (order.getSessionId().equals(sessionIdB)) countB++;
                             }
-                            Assert.assertEquals(
-                                    "Order A should have 2 fragments processed", 2, countA);
-                            Assert.assertEquals(
-                                    "Order B should have 2 fragments processed", 2, countB);
+                            assertEquals(2, countA, "Order A should have 2 fragments processed");
+                            assertEquals(2, countB, "Order B should have 2 fragments processed");
                             return null;
                         });
 
@@ -209,10 +199,11 @@ public class BeamCollegeDemoTest implements Serializable {
      * new fragment arrives after the internal state has been cleared.
      */
     @Test
-    public void testStateWarmUpFromColdCache() throws Exception {
+    public void testStateWarmUpFromColdCache(TestPipeline pipeline) throws Exception {
         String sessionId = "warmup-session";
         Instant start = Instant.ofEpochMilli(0);
-        File stateDir = tempFolder.newFolder("state-warmup");
+        File stateDir = new File(tempFolder, "state-warmup");
+        stateDir.mkdirs();
         String stateBaseDir = stateDir.getAbsolutePath();
 
         List<Event> events = DemoTestUtils.createSingleOrderScenario(sessionId, start);
@@ -251,11 +242,11 @@ public class BeamCollegeDemoTest implements Serializable {
                             for (Order order : orders) {
                                 finalOrder = order;
                             }
-                            Assert.assertNotNull("Final order should not be null", finalOrder);
-                            Assert.assertEquals(
-                                    "Final order should have 3 fragments",
+                            assertNotNull(finalOrder, "Final order should not be null");
+                            assertEquals(
                                     3,
-                                    finalOrder.getEvents().size());
+                                    finalOrder.getEvents().size(),
+                                    "Final order should have 3 fragments");
                             return null;
                         });
 

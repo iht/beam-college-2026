@@ -8,3 +8,4 @@ python/.python-version
 .venv
 tmp_state
 bin/
+.java-version

@@ -33,20 +33,17 @@ import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
+import org.apache.beam.sdk.testing.TestPipelineExtension;
 import org.apache.beam.sdk.testing.TestStream;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.joda.time.Duration;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(JUnit4.class)
+@ExtendWith(TestPipelineExtension.class)
 public class MergeFnStateStoreTest {
-
-    @Rule public final transient TestPipeline pipeline = TestPipeline.create();
 
     private static class FakeStateStoreProvider implements StateStoreProvider {
         private final String providerId;
@@ -64,7 +61,7 @@ public class MergeFnStateStoreTest {
     }
 
     @Test
-    public void testMergeLogicWithStateStoreLookup() throws Exception {
+    public void testMergeLogicWithStateStoreLookup(TestPipeline pipeline) throws Exception {
         String sessionId = "session-1";
 
         Order existingOrder = new Order(sessionId);
@@ -110,7 +107,7 @@ public class MergeFnStateStoreTest {
     }
 
     @Test
-    public void testTimerPersistenceToStateStore() throws Exception {
+    public void testTimerPersistenceToStateStore(TestPipeline pipeline) throws Exception {
         String sessionId = "session-timer";
         Map<String, Object> data1 = new HashMap<>();
         data1.put("item_id", "p1");

@@ -34,21 +34,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
+import org.apache.beam.sdk.testing.TestPipelineExtension;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(JUnit4.class)
+@ExtendWith(TestPipelineExtension.class)
 public class SessionMergePipelineTest {
-
-    @Rule public final transient TestPipeline pipeline = TestPipeline.create();
 
     private static class FakeStateStoreProvider implements StateStoreProvider {
         private final String providerId;
@@ -80,7 +77,7 @@ public class SessionMergePipelineTest {
     }
 
     @Test
-    public void testFullPipelineLogic() throws Exception {
+    public void testFullPipelineLogic(TestPipeline pipeline) throws Exception {
         String sessionId = "session-test";
         String validJson =
                 "{\"session_id\":\""

@@ -19,18 +19,15 @@ package com.google.cloud.pso.pipelines;
 import com.google.cloud.pso.options.SessionMergeOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.testing.TestPipeline;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.apache.beam.sdk.testing.TestPipelineExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(JUnit4.class)
+@ExtendWith(TestPipelineExtension.class)
 public class PipelineFactoryTest {
 
-    @Rule public final transient TestPipeline pipeline = TestPipeline.create();
-
     @Test
-    public void testCreatePipeline() {
+    public void testCreatePipeline(TestPipeline pipeline) {
         SessionMergeOptions options = PipelineOptionsFactory.as(SessionMergeOptions.class);
         options.setStateBaseDir("/tmp/state");
 

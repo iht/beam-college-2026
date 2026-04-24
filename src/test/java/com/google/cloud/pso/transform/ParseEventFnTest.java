@@ -20,21 +20,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.pso.model.Event;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
+import org.apache.beam.sdk.testing.TestPipelineExtension;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(JUnit4.class)
+@ExtendWith(TestPipelineExtension.class)
 public class ParseEventFnTest {
 
-    @Rule public final transient TestPipeline pipeline = TestPipeline.create();
-
     @Test
-    public void testParseValidJson() throws Exception {
+    public void testParseValidJson(TestPipeline pipeline) throws Exception {
         String validJson =
                 "{\"session_id\":\"s1\", \"timestamp\":100, \"event_type\":\"ADD_TO_CART\","
                         + " \"data\":{\"item_id\":\"p1\", \"quantity\":1}}";
@@ -50,7 +47,7 @@ public class ParseEventFnTest {
     }
 
     @Test
-    public void testParseInvalidJson() {
+    public void testParseInvalidJson(TestPipeline pipeline) {
         String invalidJson = "invalid-json";
         PCollection<String> input = pipeline.apply(Create.of(invalidJson));
 

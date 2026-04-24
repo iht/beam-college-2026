@@ -16,35 +16,23 @@
 
 package com.google.cloud.pso.storage;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class FileStateStoreTest {
 
-    private Path tempDir;
+    @TempDir Path tempDir;
     private FileStateStore stateStore;
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
-        tempDir = Files.createTempDirectory("state-store-test");
         stateStore = new FileStateStore(tempDir.toString());
-    }
-
-    @After
-    public void tearDown() throws IOException {
-        try (java.util.stream.Stream<Path> stream = Files.walk(tempDir)) {
-            stream.sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(java.io.File::delete);
-        }
     }
 
     @Test

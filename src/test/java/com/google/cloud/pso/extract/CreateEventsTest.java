@@ -20,24 +20,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.pso.model.Event;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
+import org.apache.beam.sdk.testing.TestPipelineExtension;
 import org.apache.beam.sdk.transforms.Count;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /** Tests for the CreateEvents transform. */
-@RunWith(JUnit4.class)
+@ExtendWith(TestPipelineExtension.class)
 public class CreateEventsTest {
-
-    @Rule public final transient TestPipeline pipeline = TestPipeline.create();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Test
-    public void testCreateEventsCount() {
+    public void testCreateEventsCount(TestPipeline pipeline) {
         int numEvents = 100;
         PCollection<String> events = pipeline.apply(CreateEvents.of(numEvents));
 
@@ -48,7 +45,7 @@ public class CreateEventsTest {
     }
 
     @Test
-    public void testCreateEventsSerialization() {
+    public void testCreateEventsSerialization(TestPipeline pipeline) {
         int numEvents = 10;
         PCollection<String> events = pipeline.apply(CreateEvents.of(numEvents));
 

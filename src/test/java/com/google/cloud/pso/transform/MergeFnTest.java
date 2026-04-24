@@ -37,21 +37,18 @@ import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
+import org.apache.beam.sdk.testing.TestPipelineExtension;
 import org.apache.beam.sdk.testing.TestStream;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.joda.time.Instant;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(JUnit4.class)
+@ExtendWith(TestPipelineExtension.class)
 public class MergeFnTest {
-
-    @Rule public final transient TestPipeline pipeline = TestPipeline.create();
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -71,7 +68,7 @@ public class MergeFnTest {
     }
 
     @Test
-    public void testMergeFnOutputsOrder() {
+    public void testMergeFnOutputsOrder(TestPipeline pipeline) {
         String sessionId = "session-1";
         Map<String, Object> data = new HashMap<>();
         data.put("item_id", "p1");
@@ -108,7 +105,7 @@ public class MergeFnTest {
     }
 
     @Test
-    public void testEventTimeTimerIsSet() throws Exception {
+    public void testEventTimeTimerIsSet(TestPipeline pipeline) throws Exception {
         String sessionId = "session-timer";
         Map<String, Object> data1 = new HashMap<>();
         data1.put("item_id", "p1");
@@ -144,7 +141,7 @@ public class MergeFnTest {
     }
 
     @Test
-    public void testEventTimeTimerResets() throws Exception {
+    public void testEventTimeTimerResets(TestPipeline pipeline) throws Exception {
         String sessionId = "session-timer-reset";
         Map<String, Object> data1 = new HashMap<>();
         data1.put("item_id", "p1");
@@ -195,7 +192,7 @@ public class MergeFnTest {
     }
 
     @Test
-    public void testStateMigrationFailureRetainsState() throws Exception {
+    public void testStateMigrationFailureRetainsState(TestPipeline pipeline) throws Exception {
         String sessionId = "session-fail";
         Map<String, Object> data1 = new HashMap<>();
         data1.put("item_id", "p1");
@@ -240,7 +237,7 @@ public class MergeFnTest {
     }
 
     @Test
-    public void testStateWarmUpFromExternal() throws Exception {
+    public void testStateWarmUpFromExternal(TestPipeline pipeline) throws Exception {
         String sessionId = "session-warmup";
         Order existingOrder = new Order(sessionId);
         // We must add an event because Order.recalculate() (called by addEvent)
