@@ -18,7 +18,7 @@ plugins {
 	id 'java'
 	id 'application'
 	id 'com.diffplug.spotless' version "8.4.0"
-	id 'net.ltgt.errorprone' version "4.4.0"
+	id 'net.ltgt.errorprone' version "5.1.0"
 }
 
 ext {
