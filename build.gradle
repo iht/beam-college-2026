@@ -30,7 +30,7 @@ ext {
 	beamVersion = "2.74.0"
 
 	slf4jVersion = "2.0.18"
-	junitVersion = "6.1.0"
+	junitVersion = "6.1.1"
 	mockitoVersion = "5.23.0"
 	errorProneCoreVersion = '2.50.0'
 
